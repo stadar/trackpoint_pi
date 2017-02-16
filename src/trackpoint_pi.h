@@ -110,6 +110,8 @@ private:
     wxCheckBox       *m_pGenerateDepth;
     wxString          m_target_name[9];
     wxTextCtrl       *m_pTargetName;
+    int               m_depth_target;
+    wxComboBox       *m_pDepthTarget;
 };
 
 #endif

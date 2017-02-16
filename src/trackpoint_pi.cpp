@@ -166,7 +166,7 @@ void trackpoint_pi::SetNMEASentence(wxString &sentence)
                     PushNMEABuffer(TTM);
                 }
 
-                if (m_generate_depth)
+                if (m_generate_depth && m_NMEA0183.Pore.TargetNumber == m_depth_target)
                 {
                     Depth = PORE_2_Depth(m_NMEA0183);
                     PushNMEABuffer(Depth);
@@ -233,7 +233,7 @@ void trackpoint_pi::ShowPreferencesDialog( wxWindow* parent )
     wxArrayPtrVoid targetList, targetLabels;
     wxTextCtrl *targetName;
     wxStaticText *targetLabel;
-
+    wxString depthStr[9];
     wxColor     cl;
     GetGlobalColor(_T("DILG1"), &cl);
     dialog->SetBackgroundColour(cl);
@@ -246,13 +246,35 @@ void trackpoint_pi::ShowPreferencesDialog( wxWindow* parent )
     wxStaticBoxSizer* SettingsBoxSizer = new wxStaticBoxSizer(RadarBox, wxVERTICAL);
     PanelSizer->Add(SettingsBoxSizer, 0, wxGROW|wxALL, border_size);
 
-    m_pGenerateAIS = new wxCheckBox( dialog, -1, _("Generate AIS sentence:"), wxDefaultPosition, wxSize(-1, -1), 0 );
+    m_pGenerateAIS = new wxCheckBox( dialog, -1, _("Generate AIS sentence"), wxDefaultPosition, wxSize(-1, -1), 0 );
     SettingsBoxSizer->Add(m_pGenerateAIS, 1, wxALIGN_LEFT|wxALL, border_size);
     m_pGenerateAIS->SetValue(m_generate_ais);
 
     m_pGenerateDepth = new wxCheckBox( dialog, -1, _("Generate Depth sentence:"), wxDefaultPosition, wxSize(-1, -1), 0 );
-    SettingsBoxSizer->Add(m_pGenerateDepth, 2, wxALIGN_LEFT|wxALL, border_size);
+    SettingsBoxSizer->Add(m_pGenerateDepth, 2, wxALIGN_LEFT|wxLEFT, border_size);
     m_pGenerateDepth->SetValue(m_generate_depth);
+
+    m_pDepthTarget = new wxComboBox(
+                                    dialog,
+                                    -1,
+                                    wxT("Depth target"),
+                                    wxDefaultPosition,
+                                    wxDefaultSize,
+                                    9,depthStr,1,
+                                    wxDefaultValidator,
+                                    "");
+    SettingsBoxSizer->Add(m_pDepthTarget, 1, wxALIGN_RIGHT | wxRIGHT, border_size);
+    m_pDepthTarget->SetString(0,"1");
+    m_pDepthTarget->SetString(1,"2");
+    m_pDepthTarget->SetString(2,"3");
+    m_pDepthTarget->SetString(3,"4");
+    m_pDepthTarget->SetString(4,"5");
+    m_pDepthTarget->SetString(5,"6");
+    m_pDepthTarget->SetString(6,"7");
+    m_pDepthTarget->SetString(7,"8");
+    m_pDepthTarget->SetString(8,"9");
+    m_pDepthTarget->SetEditable(false);
+    m_pDepthTarget->SetSelection(m_depth_target-1);
 
     for(int i=0; i<9; i++) {
         targetList.Add(new wxTextCtrl(dialog, -1, wxT(""),  wxDefaultPosition, wxSize(300, 25)));
@@ -273,6 +295,7 @@ void trackpoint_pi::ShowPreferencesDialog( wxWindow* parent )
     {
         m_generate_ais = m_pGenerateAIS->GetValue();
         m_generate_depth    = m_pGenerateDepth->GetValue();
+        m_depth_target = m_pDepthTarget->GetSelection()+1;
         for(int i=0; i<9; i++) {
             targetName = (wxTextCtrl *) targetList.Item(i);
             m_target_name[i] = targetName->GetValue();
@@ -306,6 +329,8 @@ bool trackpoint_pi::LoadConfig(void)
 
         pConf->Read( _T("GenerateAIS"), &m_generate_ais, 1 );
         pConf->Read( _T("GenerateDepth"), &m_generate_depth, 1 );
+        pConf->Read( _T("DepthTarget"), &m_depth_target, 1 );
+
         for (int i=0; i<9; i++) {
             pConf->Read( _T("TargetName_"+wxString::Format("%d", i)), &m_target_name[i] );
         }
@@ -326,6 +351,7 @@ bool trackpoint_pi::SaveConfig(void)
 
         pConf->Write( _T("GenerateAIS"), m_generate_ais );
         pConf->Write( _T("GenerateDepth"), m_generate_depth );
+        pConf->Write( _T("DepthTarget"), m_depth_target);
         for (int i=0; i<9; i++) {
             pConf->Write( _T("TargetName_"+wxString::Format("%d", i)), m_target_name[i] );
         }
