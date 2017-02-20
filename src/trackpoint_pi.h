@@ -47,6 +47,8 @@
 #include "nmea/nmea0183.h"
 
 #define TRACKPOINT_TOOL_POSITION -1
+//#include "Configuration.h"
+#include "TP2Conf.h"
 
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
@@ -105,13 +107,9 @@ private:
     int QualityFactor;
 
     bool              m_generate_ais;
-    wxCheckBox       *m_pGenerateAIS;
     bool              m_generate_depth;
-    wxCheckBox       *m_pGenerateDepth;
     wxString          m_target_name[9];
-    wxTextCtrl       *m_pTargetName;
     int               m_depth_target;
-    wxComboBox       *m_pDepthTarget;
 };
 
 #endif
