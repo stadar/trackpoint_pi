@@ -61,11 +61,7 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
 
 trackpoint_pi::trackpoint_pi(void *ppimgr)
     :opencpn_plugin_16(ppimgr), wxTimer(this),
-     m_generate_ais(true),
-     m_pGenerateAIS(0),
-     m_generate_depth(true),
-     m_pGenerateDepth(0),
-     m_pTargetName()
+     m_generate_ais(true)
 {
     // Create the PlugIn icons
     initialize_images();
@@ -84,6 +80,7 @@ int trackpoint_pi::Init(void)
     //    This PlugIn needs one toolbar icon
     m_tb_item_id_settings = InsertPlugInTool(_T(""), _img_trackpoint_settings, _img_trackpoint_settings, wxITEM_CHECK,
                                            _("Trackpoint Settings"), _T(""), NULL, TRACKPOINT_TOOL_POSITION, 0, this);
+    // 88 for testing
 
     return (
                WANTS_TOOLBAR_CALLBACK    |
@@ -228,76 +225,28 @@ unsigned char trackpoint_pi::ComputeChecksum( wxString Sentence ) const
 
 void trackpoint_pi::ShowPreferencesDialog( wxWindow* parent )
 {
-    wxDialog *dialog = new wxDialog( parent, wxID_ANY, _("Trackpoint Preferences"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE );
-    int border_size = 4;
-    wxArrayPtrVoid targetList, targetLabels;
     wxTextCtrl *targetName;
-    wxStaticText *targetLabel;
-    wxString depthStr[9];
+    TP2Conf *conf = new TP2Conf( parent );
+    conf->Fit();
     wxColor     cl;
     GetGlobalColor(_T("DILG1"), &cl);
-    dialog->SetBackgroundColour(cl);
+    conf->SetBackgroundColour(cl);
 
-    wxBoxSizer* PanelSizer = new wxBoxSizer(wxVERTICAL);
-    dialog->SetSizer(PanelSizer);
-
-    //  Radar toolbox icon checkbox
-    wxStaticBox* RadarBox = new wxStaticBox(dialog, wxID_ANY, _("Trackpoint"));
-    wxStaticBoxSizer* SettingsBoxSizer = new wxStaticBoxSizer(RadarBox, wxVERTICAL);
-    PanelSizer->Add(SettingsBoxSizer, 0, wxGROW|wxALL, border_size);
-
-    m_pGenerateAIS = new wxCheckBox( dialog, -1, _("Generate AIS sentence"), wxDefaultPosition, wxSize(-1, -1), 0 );
-    SettingsBoxSizer->Add(m_pGenerateAIS, 1, wxALIGN_LEFT|wxALL, border_size);
-    m_pGenerateAIS->SetValue(m_generate_ais);
-
-    m_pGenerateDepth = new wxCheckBox( dialog, -1, _("Generate Depth sentence:"), wxDefaultPosition, wxSize(-1, -1), 0 );
-    SettingsBoxSizer->Add(m_pGenerateDepth, 2, wxALIGN_LEFT|wxLEFT, border_size);
-    m_pGenerateDepth->SetValue(m_generate_depth);
-
-    m_pDepthTarget = new wxComboBox(
-                                    dialog,
-                                    -1,
-                                    wxT("Depth target"),
-                                    wxDefaultPosition,
-                                    wxDefaultSize,
-                                    9,depthStr,1,
-                                    wxDefaultValidator,
-                                    "");
-    SettingsBoxSizer->Add(m_pDepthTarget, 1, wxALIGN_RIGHT | wxRIGHT, border_size);
-    m_pDepthTarget->SetString(0,"1");
-    m_pDepthTarget->SetString(1,"2");
-    m_pDepthTarget->SetString(2,"3");
-    m_pDepthTarget->SetString(3,"4");
-    m_pDepthTarget->SetString(4,"5");
-    m_pDepthTarget->SetString(5,"6");
-    m_pDepthTarget->SetString(6,"7");
-    m_pDepthTarget->SetString(7,"8");
-    m_pDepthTarget->SetString(8,"9");
-    m_pDepthTarget->SetEditable(false);
-    m_pDepthTarget->SetSelection(m_depth_target-1);
-
+    conf->cbAIS->SetValue(m_generate_ais);
+    conf->cbDepth->SetValue(m_generate_depth);
+    conf->cDepthTarget->SetSelection(m_depth_target-1);
     for(int i=0; i<9; i++) {
-        targetList.Add(new wxTextCtrl(dialog, -1, wxT(""),  wxDefaultPosition, wxSize(300, 25)));
-        targetName = (wxTextCtrl *) targetList.Item(i);
-        //targetLabels.Add();
-        targetLabel = new wxStaticText(dialog, -1,  wxString::Format("Target %d name", i+1), wxDefaultPosition, wxDefaultSize);
-
-        SettingsBoxSizer->Add(targetLabel, 0, wxALIGN_LEFT, border_size);
-        SettingsBoxSizer->Add(targetName, 0, wxALIGN_RIGHT, border_size);
+        targetName = (wxTextCtrl *) conf->targetList.Item(i);
         targetName->SetValue(m_target_name[i]);
     }
 
-    wxStdDialogButtonSizer* DialogButtonSizer = dialog->CreateStdDialogButtonSizer(wxOK|wxCANCEL);
-    PanelSizer->Add(DialogButtonSizer, 0, wxALIGN_RIGHT|wxALL, 5);
-    dialog->Fit();
-
-    if(dialog->ShowModal() == wxID_OK)
+    if(conf->ShowModal() == wxID_OK)
     {
-        m_generate_ais = m_pGenerateAIS->GetValue();
-        m_generate_depth    = m_pGenerateDepth->GetValue();
-        m_depth_target = m_pDepthTarget->GetSelection()+1;
+        m_generate_ais = conf->cbAIS->GetValue();
+        m_generate_depth    = conf->cbDepth->GetValue();
+        m_depth_target = conf->cDepthTarget->GetSelection()+1;
         for(int i=0; i<9; i++) {
-            targetName = (wxTextCtrl *) targetList.Item(i);
+            targetName = (wxTextCtrl *) conf->targetList.Item(i);
             m_target_name[i] = targetName->GetValue();
         }
 
