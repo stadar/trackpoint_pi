@@ -180,7 +180,7 @@ wxString trackpoint_pi::PORE_2_TTM(NMEA0183 nmea, wxString name)
     double distance;
 
     distance = sqrt(pow(nmea.Pore.X, 2) + pow(nmea.Pore.Y, 2))/1000;
-    TTM += wxString::Format(wxT("$TPTTM,%02d,%1.4f,%3.1f,R,,,,,,K,%s,T,,%s,A*"),
+    TTM += wxString::Format(wxT("$TPTTM,%02d,%1.4f,%3.1f,T,,,,,,K,%s,T,,%s,A*"),
                             nmea.Pore.TargetNumber,
                             distance,
                             nmea.Pore.TargetBearing,
