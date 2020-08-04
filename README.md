@@ -1,3 +1,4 @@
+This project has moved to GitLAB https://gitlab.com/drid/trackpoint_pi
 # trackpoint_pi
 OpenCPN trackpoint plugin
 
